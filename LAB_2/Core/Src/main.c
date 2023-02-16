@@ -39,51 +39,41 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-typedef struct _PortPin
-{
-		GPIO_TypeDef*PORT;
-		uint16_t PIN;
-}PortPin;
+float Voltage;
+float Kelvin;
+uint16_t Display_Voltage;
+uint16_t Display_Temp;
+uint16_t OutputRaw[20];
+
+//typedef struct
+//{
+//	uint16_t in0;
+//	uint16_t temp;
+//}AdcDMAStructure;
+//AdcDMAStructure AdcDMA[10];
 
 
-PortPin R[4] =
-{
-		{GPIOA,GPIO_PIN_10}, //IN PA10 R1
-		{GPIOB,GPIO_PIN_3},	//IN PB3 R2
-		{GPIOB,GPIO_PIN_5}, //IN PB5 R3
-		{GPIOB,GPIO_PIN_4}, //IN PB4 R4
-
-};
-
-PortPin L[4] =
-{
-		{GPIOA,GPIO_PIN_9}, //IN PA9 L1
-		{GPIOC,GPIO_PIN_7},	//IN PC7 L2
-		{GPIOB,GPIO_PIN_6}, //IN PB6 L3
-		{GPIOA,GPIO_PIN_7}, //IN PA7 L4
-};
-
-uint16_t ButtonMatrix = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
-void ReadMatrixButton_1Row();
+static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t Numpad = 0 ;
-uint16_t K = 0 ;
-uint32_t Prv_Numpad = 0;
-static uint64_t Value = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -114,100 +104,33 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_ADC_Start_DMA(&hadc1,OutputRaw,20);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+
+
   while (1)
   {
+	  static uint32_t timestamp = 0;
+	  if(HAL_GetTick() >= timestamp)
+	  {
+		  if(HAL_GetTick() >= timestamp) + 1000;
+		  VariableConverter();
+	  }
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  static uint32_t timestap = 0;
-	  if(HAL_GetTick()>=timestap)
-	  {
-		  timestap = HAL_GetTick() + 10;
-		  ReadMatrixButton_1Row();
-	  }
-
-
-	  K = ButtonMatrix ;
-	  switch (K)
-	  {
-	  	  case 0:
-	  		  Numpad = 14;
-	  		  break;
-		  case 1:
-			  Numpad = 7;
-			  break;
-		  case 2:
-			  Numpad = 4;
-			  break;
-		  case 4:
-			  Numpad = 1;
-			  break;
-		  case 8:
-			  Numpad = 0;
-			  break;
-		  case 16:
-			  Numpad = 8;
-			  break;
-		  case 32:
-			  Numpad = 5;
-			  break;
-		  case 64:
-			  Numpad = 2;
-			  break;
-		  case 256:
-			  Numpad = 9;
-			  break;
-		  case 512:
-			  Numpad = 6;
-			  break;
-		  case 1024:
-			  Numpad = 3;
-			  break;
-		  case 4096:
-			  Numpad = 11;	//Clear
-			  //Value = 0; In case of use one command
-			  break;
-		  case 8192:
-			  Numpad = 12;	//BS<<
-			  break;
-		  case 32768:
-			  Numpad = 13; //OK
-			  break;
-		  default:
-			  break;
-	  }
-
-
-
-
-	  if ((Numpad - Prv_Numpad) != 0 && Numpad <= 9)
-	  	  {
-	  		 Value = (Value*10) + Numpad;
-	  	  }
-	  Prv_Numpad = Numpad;
-	  if (Value == 64340500002 && Numpad == 13)
-	  {
-		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
-	  }
-	  else
-	  {
-		  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
-	  }
-
-	  if(Numpad == 11)
-	  {
-		  Value = 0 ;
-	  }
-
-
   }
+//  HAL_Delay(10000);
   /* USER CODE END 3 */
 }
 
@@ -258,6 +181,67 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 2;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_0;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
+  sConfig.Rank = 2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -291,6 +275,22 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -306,10 +306,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LD2_Pin|R1_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, R2_Pin|R4_Pin|R3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -317,69 +314,46 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin R1_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin|R1_Pin;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : L4_Pin L1_Pin */
-  GPIO_InitStruct.Pin = L4_Pin|L1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : L2_Pin */
-  GPIO_InitStruct.Pin = L2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(L2_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : R2_Pin R4_Pin R3_Pin */
-  GPIO_InitStruct.Pin = R2_Pin|R4_Pin|R3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : L3_Pin */
-  GPIO_InitStruct.Pin = L3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(L3_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
 }
 
 /* USER CODE BEGIN 4 */
 
-void Calculator()
+void VariableConverter()
 {
+	for(int i=0;i<20;i++)
+	{
+		if(i%2 == 0)
+		{
+			Voltage = Voltage + OutputRaw[i];
+		}
+		else
+		{
+			Kelvin = Kelvin + OutputRaw[i];
+		}
+	}
 
+	Voltage = ((Voltage/10)*3.3*(1000)/(4096)*2);
+	Kelvin = ((((((Kelvin/10) * 3.3)/(4096))-0.76)/0.0025)+25)+273;
+	Display_Voltage = Voltage;
+	Display_Temp = Kelvin;
+	Voltage = 0;
+	Kelvin = 0;
 
-
-
+	//4096 : resolution
+	//0.76(v) : Voltage at room temperature C
+	//0.0025 : Average slope 2.5mV/C
+	//273.15 : to change Celsius to Kelvin
 }
-
-void ReadMatrixButton_1Row()
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-    static uint8_t X = 0;
-    register int i;
-    for (i = 0; i < 4; i++)
-    {
-        if (HAL_GPIO_ReadPin(L[i].PORT, L[i].PIN))
-        {
-            ButtonMatrix &= ~(1 << (X * 4 + i));
-        }
-        else
-        {
-            ButtonMatrix |= 1 << (X * 4 + i);
-        }
-    }
-    HAL_GPIO_WritePin(R[X].PORT, R[X].PIN, 1);
-    HAL_GPIO_WritePin(R[(X + 1) % 4].PORT, R[(X + 1) % 4].PIN, 0);
-    X++;
-    X %= 4;
+//	AdcRawData = HAL_ADC_GetValue(&hadc1);
 }
 
 /* USER CODE END 4 */
