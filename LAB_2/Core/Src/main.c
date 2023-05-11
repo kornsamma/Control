@@ -108,7 +108,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_ADC_Start_DMA(&hadc1,OutputRaw,20);
+ // HAL_ADC_Start_DMA(&hadc1,OutputRaw,20);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -118,12 +118,12 @@ int main(void)
 
   while (1)
   {
-	  static uint32_t timestamp = 0;
-	  if(HAL_GetTick() >= timestamp)
-	  {
-		  if(HAL_GetTick() >= timestamp) + 1000;
-		  VariableConverter();
-	  }
+	 // static uint32_t timestamp = 0;
+	  //if(HAL_GetTick() >= timestamp)
+	  //{
+		//  if(HAL_GetTick() >= timestamp) + 1000;
+		  //VariableConverter();
+	 // }
 
 
     /* USER CODE END WHILE */

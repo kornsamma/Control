@@ -438,7 +438,7 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
  800054c:	6a5b      	ldr	r3, [r3, #36]	; 0x24
  800054e:	4a64      	ldr	r2, [pc, #400]	; (80006e0 <main+0x204>)
  8000550:	6013      	str	r3, [r2, #0]
-		  degree = (QEIReadRaw * 360) / 3071;
+		  degree = (QEIReadRaw *360) / 3071; // Degree Convert
  8000552:	4b63      	ldr	r3, [pc, #396]	; (80006e0 <main+0x204>)
  8000554:	681b      	ldr	r3, [r3, #0]
  8000556:	f44f 72b4 	mov.w	r2, #360	; 0x168
@@ -450,10 +450,10 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
  800056a:	eef8 7a67 	vcvt.f32.u32	s15, s15
  800056e:	4b5e      	ldr	r3, [pc, #376]	; (80006e8 <main+0x20c>)
  8000570:	edc3 7a00 	vstr	s15, [r3]
-		  float Delta_T = 0.01;
+		  float Delta_T = 0.01; // Delta T value
  8000574:	4b5d      	ldr	r3, [pc, #372]	; (80006ec <main+0x210>)
  8000576:	607b      	str	r3, [r7, #4]
-		  Error = setpoint - degree ;//error
+		  Error = setpoint - degree ; //error
  8000578:	4b5d      	ldr	r3, [pc, #372]	; (80006f0 <main+0x214>)
  800057a:	681b      	ldr	r3, [r3, #0]
  800057c:	ee07 3a90 	vmov	s15, r3
@@ -489,8 +489,7 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
  80005d4:	ee77 7a27 	vadd.f32	s15, s14, s15
  80005d8:	4b49      	ldr	r3, [pc, #292]	; (8000700 <main+0x224>)
  80005da:	edc3 7a00 	vstr	s15, [r3]
-		  //PID calculate
-		  u = (Kp * Error) + (Ki * e_integral) + (Kd * Diff_t) ;
+		  u = (Kp * Error) + (Ki * e_integral) + (Kd * Diff_t) ;//PID calculate
  80005de:	4b45      	ldr	r3, [pc, #276]	; (80006f4 <main+0x218>)
  80005e0:	681b      	ldr	r3, [r3, #0]
  80005e2:	ee07 3a90 	vmov	s15, r3
@@ -512,13 +511,13 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
  8000618:	ee77 7a27 	vadd.f32	s15, s14, s15
  800061c:	4b3c      	ldr	r3, [pc, #240]	; (8000710 <main+0x234>)
  800061e:	edc3 7a00 	vstr	s15, [r3]
-		  PWM = fabs(u);
+		  PWM = fabs(u); // set PWM = Absolute u
  8000622:	4b3b      	ldr	r3, [pc, #236]	; (8000710 <main+0x234>)
  8000624:	edd3 7a00 	vldr	s15, [r3]
  8000628:	eef0 7ae7 	vabs.f32	s15, s15
  800062c:	4b39      	ldr	r3, [pc, #228]	; (8000714 <main+0x238>)
  800062e:	edc3 7a00 	vstr	s15, [r3]
-		  if (PWM > 100){PWM = 100;}
+		  if (PWM > 100){PWM = 100;} // Limit PWM
  8000632:	4b38      	ldr	r3, [pc, #224]	; (8000714 <main+0x238>)
  8000634:	edd3 7a00 	vldr	s15, [r3]
  8000638:	ed9f 7a37 	vldr	s14, [pc, #220]	; 8000718 <main+0x23c>
@@ -528,11 +527,11 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
  8000646:	4b33      	ldr	r3, [pc, #204]	; (8000714 <main+0x238>)
  8000648:	4a34      	ldr	r2, [pc, #208]	; (800071c <main+0x240>)
  800064a:	601a      	str	r2, [r3, #0]
-		  Direction = 1;
+		  Direction = 1; // Motor start
  800064c:	4b34      	ldr	r3, [pc, #208]	; (8000720 <main+0x244>)
  800064e:	2201      	movs	r2, #1
  8000650:	701a      	strb	r2, [r3, #0]
-		  if (u < 0){Direction = -1;}
+		  if (u < 0){Direction = -1;} // Invert Motor
  8000652:	4b2f      	ldr	r3, [pc, #188]	; (8000710 <main+0x234>)
  8000654:	edd3 7a00 	vldr	s15, [r3]
  8000658:	eef5 7ac0 	vcmpe.f32	s15, #0.0
@@ -580,7 +579,7 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
  80006b2:	ee17 2a90 	vmov	r2, s15
  80006b6:	635a      	str	r2, [r3, #52]	; 0x34
 		  }
-		  if (Error == 0){e_integral = 0;}
+		  if (Error == 0){e_integral = 0;} // Set zero stack value of Ki
  80006b8:	4b0e      	ldr	r3, [pc, #56]	; (80006f4 <main+0x218>)
  80006ba:	681b      	ldr	r3, [r3, #0]
  80006bc:	2b00      	cmp	r3, #0
@@ -1020,9 +1019,9 @@ static void MX_TIM2_Init(void)
  800097a:	4b1e      	ldr	r3, [pc, #120]	; (80009f4 <MX_TIM2_Init+0xa4>)
  800097c:	2200      	movs	r2, #0
  800097e:	609a      	str	r2, [r3, #8]
-  htim2.Init.Period = 4294967295;
+  htim2.Init.Period = 3071;
  8000980:	4b1c      	ldr	r3, [pc, #112]	; (80009f4 <MX_TIM2_Init+0xa4>)
- 8000982:	f04f 32ff 	mov.w	r2, #4294967295	; 0xffffffff
+ 8000982:	f640 32ff 	movw	r2, #3071	; 0xbff
  8000986:	60da      	str	r2, [r3, #12]
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
  8000988:	4b1a      	ldr	r3, [pc, #104]	; (80009f4 <MX_TIM2_Init+0xa4>)

@@ -136,17 +136,16 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	  {
 		  timestamp = HAL_GetTick() + 10;
 		  QEIReadRaw = __HAL_TIM_GET_COUNTER(&htim2);
-		  degree = (QEIReadRaw * 360) / 3071;
-		  float Delta_T = 0.01;
-		  Error = setpoint - degree ;//error
+		  degree = (QEIReadRaw *360) / 3071; // Degree Convert
+		  float Delta_T = 0.01; // Delta T value
+		  Error = setpoint - degree ; //error
 		  Diff_t = (Error - Error_previous) / Delta_T ; //Differential Time
 		  e_integral = e_integral + (Error * Delta_T);//integral Error
-		  //PID calculate
-		  u = (Kp * Error) + (Ki * e_integral) + (Kd * Diff_t) ;
-		  PWM = fabs(u);
-		  if (PWM > 100){PWM = 100;}
-		  Direction = 1;
-		  if (u < 0){Direction = -1;}
+		  u = (Kp * Error) + (Ki * e_integral) + (Kd * Diff_t) ;//PID calculate
+		  PWM = fabs(u); // set PWM = Absolute u
+		  if (PWM > 100){PWM = 100;} // Limit PWM
+		  Direction = 1; // Motor start
+		  if (u < 0){Direction = -1;} // Invert Motor
 		  if (Direction == 1){
 			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, PWM);
 			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
@@ -155,7 +154,7 @@ HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
 			  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, PWM);
 		  }
-		  if (Error == 0){e_integral = 0;}
+		  if (Error == 0){e_integral = 0;} // Set zero stack value of Ki
 	  }
 	  Error_previous = Error;
   }
@@ -308,7 +307,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
+  htim2.Init.Period = 3071;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
